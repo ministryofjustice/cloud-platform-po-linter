@@ -10,4 +10,4 @@ COPY . .
 
 RUN go build -v -o po-linter .
 
-CMD ./po-linter
+CMD ["po-linter"]
