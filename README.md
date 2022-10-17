@@ -7,7 +7,7 @@ This linter will check Prometheus Rules YAML for any incorrect syntax.
 ---
 From within the repository run the following command to create the correct binary to be ran in the docker image 
 ```
-env GOOS=linux GOARCH=amd64 go build .
+env GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" .
 ```
 
 ### Github action example 
