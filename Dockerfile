@@ -1,10 +1,6 @@
 FROM golang:1.19
 
-WORKDIR /go/src/app
-COPY . .
+WORKDIR /go/bin
+COPY cloud-platform-po-linter /go/bin
 
-RUN go get -d -v ./...
-RUN go install -v ./...
-RUN go build .
-
-CMD [ "cloud-platform-po-linter" ]
+CMD ["/go/bin/cloud-platform-po-linter"]
