@@ -1,9 +1,9 @@
 # cloud-platform-po-linter
 ### Description
 ---
-This linter will check Prometheus Rules YAML for any incorrect syntax.
+`cloud-platform-po-linter` is a github action, that will check Prometheus Rules YAML for any incorrect syntax.
 
-### Building binary for release 
+### Building binary manually for release 
 ---
 From within the repository run the following command to create the correct binary to be ran in the docker image 
 ```

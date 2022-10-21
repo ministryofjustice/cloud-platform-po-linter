@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -26,6 +25,12 @@ func prDir(token, githubrepo, githubref string) ([]string, error) {
 	if token == "" {
 		return nil, errors.New("you must have a valid GitHub token")
 	}
+	if githubrepo == "" {
+		return nil, errors.New("you must have a valid GitHub Repository")
+	}
+	if githubref == "" {
+		return nil, errors.New("you must have a valid GitHub Ref")
+	}
 
 	client, err := authenticate.GitHubClient(token)
 	if err != nil {
@@ -40,7 +45,10 @@ func prDir(token, githubrepo, githubref string) ([]string, error) {
 	// get pr owner
 	githubrefS := strings.Split(githubref, "/")
 	branch := githubrefS[2]
-	bid, _ := strconv.Atoi(branch)
+	bid, err := strconv.Atoi(branch)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	repos, _, _ := client.PullRequests.ListFiles(context.Background(), owner, repo, bid, nil)
 
@@ -54,12 +62,12 @@ func prDir(token, githubrepo, githubref string) ([]string, error) {
 
 }
 
-func poLint(dir []string) {
+func poLint(dir []string) error {
 	files := dir
 
 	for _, filename := range files {
 		log.SetPrefix(fmt.Sprintf("%s: ", filename))
-		content, err := ioutil.ReadFile(filename)
+		content, err := os.ReadFile(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -68,17 +76,15 @@ func poLint(dir []string) {
 
 		err = yaml.Unmarshal(content, &meta)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("%v", err)
 		}
 
 		switch meta.Kind {
 		case v1.PrometheusRuleKind:
 			j, err := yaml.YAMLToJSON(content)
 			if err != nil {
-				// log.Fatalf("unable to convert YAML to JSON: %v", err)
-				o := fmt.Sprintf("unable to convert YAML to JSON: %v", err)
-				githubaction.SetOutput("po-linter", o)
-				os.Exit(1)
+				fmt.Println("unable to convert YAML to JSON: %w", err)
+				return fmt.Errorf("unable to convert YAML to JSON: %w", err)
 			}
 
 			decoder := json.NewDecoder(bytes.NewBuffer(j))
@@ -87,25 +93,19 @@ func poLint(dir []string) {
 			var rule v1.PrometheusRule
 			err = decoder.Decode(&rule)
 			if err != nil {
-				// log.Fatalf("prometheus rule is invalid: %v", err)
-				o := fmt.Sprintf("prometheus rule is invalid: %v", err)
-				githubaction.SetOutput("po-linter", o)
-				os.Exit(1)
-
+				fmt.Println("prometheus rule is invalid: %w", err)
+				return fmt.Errorf("prometheus rule is invalid: %w", err)
 			}
 			err = validateRules(content)
 			if err != nil {
-				// log.Fatalf("prometheus rule validation failed: %v", err)
-				o := fmt.Sprintf("prometheus rule validation failed: %v", err)
-				githubaction.SetOutput("po-linter", o)
-				os.Exit(1)
+				fmt.Println("prometheus rule validation failed: %w", err)
+				return fmt.Errorf("prometheus rule validation failed: %w", err)
 			}
 		default:
-			// log.Print("MetaType is unknown to linter. Not in PrometheusRule")
-			o := fmt.Sprintln("MetaType is unknown to linter. Not in PrometheusRule")
-			githubaction.SetOutput("po-linter", o)
+			return fmt.Errorf("MetaType is unknown to linter. Not in PrometheusRule")
 		}
 	}
+	return nil
 }
 
 func validateRules(content []byte) error {
@@ -118,8 +118,8 @@ func validateRules(content []byte) error {
 	if len(errorsArray) != 0 {
 		for _, err := range errorsArray {
 			log.Println(err)
+			return fmt.Errorf("%w", err)
 		}
-		return errors.New("rules are not valid")
 	}
 	if len(rules.Groups) == 0 {
 		return errors.New("no group found")
@@ -144,6 +144,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	poLint(d)
-
+	err = poLint(d)
+	if err != nil {
+		o := fmt.Sprintf("%v", err)
+		githubaction.SetOutput("po-linter", o)
+		os.Exit(1)
+	}
 }
