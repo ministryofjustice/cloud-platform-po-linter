@@ -2,14 +2,15 @@
 ### Description
 ---
 `cloud-platform-po-linter` is a github action, that will check Prometheus Rules YAML for any incorrect syntax.
-
-### Building binary manually for release 
+### Github Action Status
+---
+[![Release Go project](https://github.com/ministryofjustice/cloud-platform-po-linter/actions/workflows/go-release.yaml/badge.svg)](https://github.com/ministryofjustice/cloud-platform-po-linter/actions/workflows/go-release.yaml)
+### Building binary manually for local testing 
 ---
 From within the repository run the following command to create the correct binary to be ran in the docker image 
 ```
 env GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" .
 ```
-
 ### Github action example 
 ---
 ```

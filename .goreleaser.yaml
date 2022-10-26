@@ -1,0 +1,43 @@
+project_name: cloud-platform-po-linter
+before:
+  hooks:
+    - go mod download
+builds:
+  - env:
+    - CGO_ENABLED=0
+    main: ./cloud-platform-po-linter.go
+    binary: cloud-platform-po-linter
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    ldflags:
+      - -s -w
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+dockers:
+- image_templates: ["ministryofjustice/cloud-platform-po-linter:{{ .Version }}"]
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - --label=org.opencontainers.image.title={{ .ProjectName }}
+  - --label=org.opencontainers.image.description={{ .ProjectName }}
+  - --label=org.opencontainers.image.url=https://github.com/ministryofjustice/cloud-platform-po-linter
+  - --label=org.opencontainers.image.source=https://github.com/ministryofjustice/cloud-platform-po-linter
+  - --label=org.opencontainers.image.version={{ .Version }}
+  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+  - --label=org.opencontainers.image.revision={{ .FullCommit }}
+  - --label=org.opencontainers.image.licenses=Apache
+nfpms:
+- maintainer: cloud-platform
+  description: Prometheus Operator Linter
+  homepage: https://github.com/ministryofjustice/cloud-platform-po-linter
+  license: Apache
