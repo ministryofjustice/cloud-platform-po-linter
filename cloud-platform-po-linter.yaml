@@ -3,4 +3,4 @@ description: Checks if Prometheus rule yaml has any errors
 
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'ministryofjustice/cloud-platform-po-linter@latest'
