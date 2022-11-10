@@ -1,11 +1,12 @@
 project_name: cloud-platform-po-linter
+env:
+  - CGO_ENABLED=0
+  - DOCKERFILE=Dockerfile-goreleaser
 before:
   hooks:
     - go mod download
 builds:
-  - env:
-    - CGO_ENABLED=0
-    main: ./cloud-platform-po-linter.go
+  - main: ./cloud-platform-po-linter.go
     binary: cloud-platform-po-linter
     goos:
       - linux
