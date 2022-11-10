@@ -7,12 +7,6 @@ ENV \
 
 WORKDIR /go/bin
 
-# Build linter
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-COPY . .
+COPY cloud-platform-po-linter /go/bin
 
-RUN go build -ldflags "-s -w" .
-
-CMD ["/go/bin/cloud-platform-po-linter"]
+CMD ["cloud-platform-po-linter"]
