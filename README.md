@@ -5,12 +5,13 @@
 ### Github Action Status
 ---
 [![Release Go project](https://github.com/ministryofjustice/cloud-platform-po-linter/actions/workflows/go-release.yaml/badge.svg)](https://github.com/ministryofjustice/cloud-platform-po-linter/actions/workflows/go-release.yaml)
-### Building binary manually for local testing 
+### How to publish a new binary
 ---
-From within the repository run the following command to create the correct binary to be ran in the docker image 
-```
-env GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" .
-```
+
+Within this respoistory goreleaser tool is used to create a Go binary and push a image to Docker Hub. To publish a new binary once the Pull Request is approved and merged into the `main` branch, create a new release and the github action with automatically start and publish the new binary. 
+
+After the new binary has been published, no changes will be needed to the workflow that is calling the image aslong as the `latest` image is being pulled.
+
 ### Github action example 
 ---
 ```
@@ -19,8 +20,8 @@ name: Prometheus Operator Linter
 on:
   pull_request:
     paths:
-    - *prometheus.yaml
-    - *prometheus.yml
+    - *prometheus.yaml ## change to location and file name of the prometheus rule yaml
+  workflow_dispatch:
 
 jobs:
   po-lint:
@@ -35,27 +36,23 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run po-linter
-        uses: ministryofjustice/cloud-platform-po-linter@p1.0.0
+        uses: docker://ministryofjustice/cloud-platform-po-linter:latest
         continue-on-error: true
         id: po-linter
         env:
-          GITHUB_OAUTH_TOKEN: ${{ secrets.ACTION_TOKEN }}
+          GITHUB_OAUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Result
         uses: actions/github-script@v6
         env:
             summary: "Result:\n${{ steps.po-linter.outputs.po-linter }}"
         with:
-            github-token: ${{ secrets.ACTION_TOKEN }}
+            github-token: ${{ secrets.GITHUB_TOKEN }}
             script: |
                 const output = `#### Prometheus Operator Linting Results \`${{ steps.po-linter.outcome }}\`
-
                 <details><summary>Show</summary>
-
                 ${process.env.summary}
-
                 </details>`
-
                 github.rest.issues.createComment({
                   issue_number: context.issue.number,
                   owner: context.repo.owner,
@@ -65,5 +62,4 @@ jobs:
       - name: Exitcode
         if: steps.po-linter.outcome != 'success'
         run: exit 1
-
 ```
