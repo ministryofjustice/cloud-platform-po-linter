@@ -1,6 +1,6 @@
 module github.com/ministryofjustice/cloud-platform-po-linter
 
-go 1.19
+go 1.25
 
 require (
 	github.com/prometheus/client_golang v1.13.0 // indirect
