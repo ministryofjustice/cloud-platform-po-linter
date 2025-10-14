@@ -1,12 +1,23 @@
-FROM golang:1.19.2-alpine
+FROM golang:1.25.2-alpine3.22 AS builder
 
 ENV \
     CGO_ENABLED=0 \
-    GOOS=linux \
-    CLOUD_PLATFORM_PO_LINTER_VERSION=DOCKER
+    GOOS=linux
 
-WORKDIR /go/bin
+WORKDIR /app
 
-COPY cloud-platform-po-linter /go/bin
+COPY go.mod go.sum ./
 
-CMD ["cloud-platform-po-linter"]
+RUN go mod download
+
+COPY *.go ./
+
+RUN go build -o cloud-platform-po-linter .
+
+FROM scratch
+
+ENV CLOUD_PLATFORM_PO_LINTER_VERSION=DOCKER
+
+COPY --from=builder /app/cloud-platform-po-linter /cloud-platform-po-linter
+
+CMD ["/cloud-platform-po-linter"]
