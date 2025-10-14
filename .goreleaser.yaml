@@ -28,6 +28,10 @@ dockers:
   goarch: amd64
   dockerfile: '{{ .Env.DOCKERFILE }}'
   use: buildx
+  extra_files:
+  - go.mod
+  - go.sum
+  - cloud-platform-po-linter.go
   build_flag_templates:
   - --platform=linux/amd64
   - --label=org.opencontainers.image.title={{ .ProjectName }}
@@ -42,6 +46,10 @@ dockers:
   goarch: arm64
   dockerfile: '{{ .Env.DOCKERFILE }}'
   use: buildx
+  extra_files:
+  - go.mod
+  - go.sum
+  - cloud-platform-po-linter.go
   build_flag_templates:
   - --platform=linux/arm64
   - --label=org.opencontainers.image.title={{ .ProjectName }}
